@@ -994,12 +994,14 @@ class auth_plugin_ldap extends auth_plugin_base {
                 // The cast to int is a workaround for MDL-53959.
                 $newuser->suspended = (int)$this->is_user_suspended((object) $newinfo);
 
+                $userconditions = array('id' => $userid);
                 foreach ($updatekeys as $key) {
                     if (isset($newinfo[$key])) {
                         $value = $newinfo[$key];
                     } else {
                         $value = '';
                     }
+                    $userconditions[$key] = $value;
 
                     if (!empty($this->config->{'field_updatelocal_' . $key})) {
                         // Only update if it's changed.
@@ -1008,7 +1010,9 @@ class auth_plugin_ldap extends auth_plugin_base {
                         }
                     }
                 }
-                user_update_user($newuser, false, $triggerevent);
+                if (!$DB->get_record('user', $userconditions)) {
+                    user_update_user($newuser, false, $triggerevent);
+                }
             }
         } else {
             return false;
