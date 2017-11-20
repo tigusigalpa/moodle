@@ -175,6 +175,7 @@ class schema {
         }
 
         $url = $this->engine->get_connection_url('/schema');
+        $version = $this->engine->get_solr_major_version();
 
         // Add all fields.
         foreach ($fields as $fieldname => $data) {
@@ -182,11 +183,27 @@ class schema {
             if (!isset($data['type']) || !isset($data['stored']) || !isset($data['indexed'])) {
                 throw new \coding_exception($fieldname . ' does not define all required field params: type, stored and indexed.');
             }
+            $type = $data['type'];
+            switch($data['type']) {
+                case 'text':
+                    $type = 'text_general';
+                    break;
+                case 'int':
+                    if (version_compare($version, 7, '>=')) {
+                        $type = 'pint';
+                    }
+                    break;
+                case 'tdate':
+                    if (version_compare($version, 7, '>=')) {
+                        $type = 'pdate';
+                    }
+                    break;
+            }
             // Changing default multiValued value to false as we want to match values easily.
             $params = array(
                 'add-field' => array(
                     'name' => $fieldname,
-                    'type' => ($data['type'] === 'text' ? 'text_general' : $data['type']),
+                    'type' => $type,
                     'stored' => $data['stored'],
                     'multiValued' => false,
                     'indexed' => $data['indexed']
