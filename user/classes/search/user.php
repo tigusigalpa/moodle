@@ -80,6 +80,21 @@ class user extends \core_search\base {
     }
 
     /**
+     * Title handler to override
+     *
+     * @param stdClass $record Instance record object
+     * @return string|boolean
+     */
+    public function get_document_display_title($record) {
+        $fullname = fullname($record);
+        $array = [];
+        foreach (get_all_user_name_fields() as $field) {
+            $array[$field] = $record->$field;
+        }
+        return content_to_text($fullname.' '.str_replace($fullname, '', join(' ', $array)), false);
+    }
+
+    /**
      * Returns document instances for each record in the recordset.
      *
      * @param \stdClass $record
@@ -93,7 +108,7 @@ class user extends \core_search\base {
         // Prepare associative array with data from DB.
         $doc = \core_search\document_factory::instance($record->id, $this->componentname, $this->areaname);
         // Assigning properties to our document.
-        $doc->set('title', content_to_text(fullname($record), false));
+        $doc->set('title', $this->get_document_display_title($record));
         $doc->set('contextid', $context->id);
         $doc->set('courseid', SITEID);
         $doc->set('itemid', $record->id);

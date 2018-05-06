@@ -509,4 +509,14 @@ abstract class base {
     public function get_contexts_to_reindex() {
         return new \ArrayIterator([\context_system::instance()]);
     }
+
+    /**
+     * Title handler to override
+     *
+     * @param stdClass $record Instance record object
+     * @return string|boolean
+     */
+    public function get_document_display_title($record) {
+        return true;
+    }
 }
