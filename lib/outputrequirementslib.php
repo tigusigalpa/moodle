@@ -1311,7 +1311,7 @@ class page_requirements_manager {
      * that contain require() calls using RequireJS.
      * @return string
      */
-    protected function get_amd_footercode() {
+    protected function get_amd_footercode($extrapaths = []) {
         global $CFG;
         $output = '';
         $jsrev = $this->get_jsrev();
@@ -1332,6 +1332,22 @@ class page_requirements_manager {
         $requirejsconfig = str_replace('[BASEURL]', $requirejsloader, $requirejsconfig);
         $requirejsconfig = str_replace('[JSURL]', $jsloader, $requirejsconfig);
         $requirejsconfig = str_replace('[JSEXT]', $jsextension, $requirejsconfig);
+
+        if ($extrapaths) {
+            $extrapathsjs = '';
+            foreach ($extrapaths as $name => $path) {
+                $path = str_replace('[BASEURL]', $requirejsloader, $path);
+                $path = str_replace('[JSURL]', $jsloader, $path);
+                $path = str_replace('[JSEXT]', $jsextension, $path);
+                if (validate_param($name, PARAM_ALPHAEXT)) {
+                    if (!validate_param($path, PARAM_URL)) {
+                        $path = $CFG->wwwroot.'/'.trim(str_replace($CFG->wwwroot, '', str_replace($CFG->dirroot, '', $path)), '/');
+                    }
+                    $extrapathsjs .= 'require.paths.' . $name . '=\'' . $path.'\';';
+                }
+            }
+            $requirejsconfig .= $extrapathsjs;
+        }
 
         $output .= html_writer::script($requirejsconfig);
         if ($CFG->debugdeveloper) {
@@ -1579,7 +1595,7 @@ class page_requirements_manager {
      *
      * @return string the HTML code to to at the end of the page.
      */
-    public function get_end_code() {
+    public function get_end_code($extrapaths = []) {
         global $CFG;
         $output = '';
 
@@ -1592,7 +1608,7 @@ class page_requirements_manager {
         $this->js_call_amd('core/log', 'setConfig', array($logconfig));
 
         // Call amd init functions.
-        $output .= $this->get_amd_footercode();
+        $output .= $this->get_amd_footercode($extrapaths);
 
         // Add other requested modules.
         $output .= $this->get_extra_modules_code();

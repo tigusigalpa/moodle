@@ -513,6 +513,11 @@ class core_renderer extends renderer_base {
     protected $unique_main_content_token;
 
     /**
+     * @var array Extra RequireJS modules paths
+     */
+    protected $extrapaths = [];
+
+    /**
      * Constructor
      *
      * @param moodle_page $page the page we are doing output for.
@@ -1336,7 +1341,7 @@ class core_renderer extends renderer_base {
                 \core\notification::fetch_as_array($this)
             ));
         }
-        $footer = str_replace($this->unique_end_html_token, $this->page->requires->get_end_code(), $footer);
+        $footer = str_replace($this->unique_end_html_token, $this->page->requires->get_end_code($this->extrapaths), $footer);
 
         $this->page->set_state(moodle_page::STATE_DONE);
 
